@@ -4,128 +4,107 @@ on:
   push
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-
+  PACKAGE_NAME: QuaZip-Qt6
+  GIT_TAG_NAME: 1.0.0
+  MSVC_VERSION: 16
+  
 jobs:
-
-  build:
-    runs-on: ubuntu-${{ matrix.ubuntu_version }}
-    name: Ubuntu-${{ matrix.ubuntu_version }}-Qt-${{ matrix.qt_version }}-shared-${{ matrix.shared }}
+  windows:
+    runs-on: windows-2019
     strategy:
       fail-fast: false
       matrix:
-        ubuntu_version: [20.04, 22.04]
-        qt_version: [5.12.12, 5.15.2, 6.4.0]
-        shared: [ON, OFF]
-
+        configuration: [Debug, Release]
+        include:
+          - configuration: Debug
+          - configuration: Release
+    
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v3
-                
-    - name: Install Qt6
-      if: "startsWith(matrix.qt_version, '6.')"
-      uses: jurplel/install-qt-action@v3
-      with:
-          version: ${{ matrix.qt_version }}
-          cache: 'true'
-          cache-key-prefix: ${{ runner.os }}-Qt-Cache-${{ matrix.qt_version }}
-          dir: ${{ github.workspace }}/Qt
-          modules: 'qt5compat'
 
-    - name: Install Qt5
-      if: "startsWith(matrix.qt_version, '5.')"
-      uses: jurplel/install-qt-action@v3
-      with:
-          version: ${{ matrix.qt_version }}
-          cache: 'true'
-          cache-key-prefix: ${{ runner.os }}-Qt-Cache-${{ matrix.qt_version }}
-          dir: ${{ github.workspace }}/Qt
+    - run: pip install conan==1.59.0
 
-    - name: Install libraries
+    - name: Configure conan #remove comment
       run: |
-        sudo apt-get update &&
-        sudo apt-get install -y --no-install-recommends \
-          zlib1g-dev libbz2-dev
-
-    - name: Configure CMake
-      run: cmake -DCMAKE_BUILD_TYPE="${{env.BUILD_TYPE}}" -DBUILD_SHARED_LIBS=${{ matrix.shared }} -DQUAZIP_ENABLE_TESTS=ON -B "${{github.workspace}}/build"
-
+        conan remote add barco https://barcohc.jfrog.io/barcohc/api/conan/barco
+        conan user -p ${{ secrets.CONAN_API_KEY }} -r barco ${{ secrets.CONAN_API_USER }}
+        conan profile new default --detect
+        conan profile update settings.compiler="Visual Studio" default
+        conan profile update settings.compiler.version=${{ env.MSVC_VERSION }} default
+        
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.4.3'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        install-deps: 'true'
+        modules: 'qt5compat'
+        cache: 'true'
+        set-env: 'true'
+        
+    - name: Prepare tag name
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: olegtarasov/get-tag@v2.1.2
+      with:
+        tagRegex: "v(.*)" # Strip leaving v
+              
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      env:
+        QTDIR: Qt6_DIR
+      run:
+        conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      
+    - name: Upload
+      run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      if: env.GIT_TAG_NAME != 'master'
 
-    - name: Run tests
-      working-directory: ${{github.workspace}}/build
-      run: "ctest --verbose"
-
-  macos:
-    runs-on: macos-${{ matrix.macos_version }}
-    name: macos-${{ matrix.macos_version }}-Qt-${{ matrix.qt_version }}-shared-${{ matrix.shared }}
+  ubuntu:
     strategy:
       fail-fast: false
       matrix:
-        macos_version: [11, 12]
-        qt_version: [5.15.2, 6.4.0]
-        shared: [ON, OFF]
+        compiler: [gcc, clang]
+        configuration: [Debug, Release]
+        include:
+          - compiler: gcc
+            configuration: Debug
+          - compiler: gcc
+            configuration: Release
+          - compiler: clang
+            configuration: Debug
+          - compiler: clang
+            configuration: Release
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Install Qt6
-        if: "startsWith(matrix.qt_version, '6.')"
-        uses: jurplel/install-qt-action@v3
-        with:
-            version: ${{ matrix.qt_version }}
-            cache: 'true'
-            cache-key-prefix: ${{ runner.os }}-Qt-Cache-${{ matrix.qt_version }}
-            dir: ${{ github.workspace }}/Qt
-            modules: 'qt5compat'
-
-      - name: Install Qt5
-        if: "startsWith(matrix.qt_version, '5.')"
-        uses: jurplel/install-qt-action@v3
-        with:
-            version: ${{ matrix.qt_version }}
-            cache: 'true'
-            cache-key-prefix: ${{ runner.os }}-Qt-Cache-${{ matrix.qt_version }}
-            dir: ${{ github.workspace }}/Qt
-
-      - name: Configure CMake
-        run: cmake -DCMAKE_BUILD_TYPE="${{env.BUILD_TYPE}}" -DBUILD_SHARED_LIBS=${{ matrix.shared }}  -DQUAZIP_ENABLE_TESTS=ON -B "${{github.workspace}}/build"
-        
-      - name: Build
-        run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-      - name: Run tests
-        working-directory: ${{github.workspace}}/build
-        run: "ctest --verbose"
-
-  alpine:
-    name: "cmake on ${{ matrix.runner }}"
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-latest
     container:
-      image: "${{ matrix.runner }}"
-    strategy:
-      matrix:
-        runner:
-          - "alpine:3.11"  # cmake 3.15, qt 5.12
-          - "alpine:3.12"  # cmake 3.17, qt 5.14
-    env:
-      DEBIAN_FRONTEND: noninteractive
+      image: ghcr.io/barco/qaweb-agent-builder-${{ matrix.compiler }}:2.0.2
+      credentials:
+        username: ${{ secrets.REG_USER }}
+        password: ${{ secrets.REG_TOKEN }}
+
     steps:
-      - name: Show OS info
-        run: cat /etc/os-release
-      - uses: actions/checkout@v2
-      - name: Install qt and build tools
-        run: apk add --update g++ make cmake qt5-qtbase-dev
-      - name: Show cmake version
-        run: cmake --version
-      - name: Run cmake
-        run: cmake -S . -B build -DQUAZIP_ENABLE_TESTS=ON
-      - name: Build quazip
-        run: cd build && VERBOSE=1 make -j8
-      - name: Build tests
-        run: cd build/qztest && VERBOSE=1 make -j8
-      - name: Run tests
-        run: build/qztest/qztest
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Configure conan
+      run: |
+        conan remote add barco https://barcohc.jfrog.io/barcohc/api/conan/barco
+        conan user -p ${{ secrets.CONAN_API_KEY }} -r barco ${{ secrets.CONAN_API_USER }}
+        conan profile new default --detect
+        conan profile update settings.compiler="${{ matrix.compiler }}" default
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+    - run: git config --global --add safe.directory $GITHUB_WORKSPACE
+    
+    - name: Prepare tag name
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: olegtarasov/get-tag@v2.1.2
+      with:
+        tagRegex: "v(.*)" # Strip leaving v
+      
+    - name: Build
+      run: conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+        
+    - name: Upload
+      run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      if: env.GIT_TAG_NAME != 'master'
