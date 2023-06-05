@@ -1,10 +1,7 @@
-on:
-  push:
-    branches:
-      - master
-  pull_request:
+name: Build and upload package
 
-name: CI
+on:
+  push
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
