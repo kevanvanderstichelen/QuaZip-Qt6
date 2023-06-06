@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 
 class QuazipQt6Conan(ConanFile):
-    name = "QuaZip-Qt6"
+    name = "quazip"
     version = "1.0.0"
     license = "LGPL-2.1, zlib/png"
     description = "Qt/C++ wrapper over minizip"
@@ -34,5 +34,5 @@ class QuazipQt6Conan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = ["QuaZip-Qt6"]
+        self.cpp_info.libs = ["quazip"]
 
