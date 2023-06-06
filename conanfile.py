@@ -5,6 +5,7 @@ from conans import ConanFile, CMake, tools
 class QuazipQt6Conan(ConanFile):
     name = "QuaZip-Qt6"
     version = "1.0.0"
+    license = "LGPL-2.1, zlib/png"
     description = "Qt/C++ wrapper over minizip"
     topics = ("conan", "quazip", "qt6")
     url = "https://github.com/kevanvanderstichelen/QuaZip-Qt6"
