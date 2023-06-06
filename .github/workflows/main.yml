@@ -51,8 +51,8 @@ jobs:
         tagRegex: "v(.*)" # Strip leaving v
               
     - name: Build
-      env:
-        QTDIR: Qt6_DIR
+#      env:
+#        QTDIR: Qt6_DIR
       run:
         conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
       
@@ -78,7 +78,7 @@ jobs:
 
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/barco/qaweb-agent-builder-${{ matrix.compiler }}:2.0.2
+      image: ghcr.io/barco/qaweb-agent-builder-${{ matrix.compiler }}:2.0.4
       credentials:
         username: ${{ secrets.REG_USER }}
         password: ${{ secrets.REG_TOKEN }}
