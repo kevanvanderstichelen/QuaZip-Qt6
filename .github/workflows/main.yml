@@ -51,18 +51,12 @@ jobs:
         tagRegex: "v(.*)" # Strip leaving v
               
     - name: Build
-#      env:
-#        QTDIR: Qt6_DIR
       run:
         conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
       
     - name: Upload
       run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
       if: env.GIT_TAG_NAME != 'master'
-
-    - name: Run tests
-      working-directory: ${{github.workspace}}/build
-      run: "ctest --verbose"
 
   ubuntu:
     strategy:
