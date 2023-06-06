@@ -1,0 +1,110 @@
+name: Build and upload package
+
+on:
+  push
+
+env:
+  PACKAGE_NAME: QuaZip-Qt6
+  GIT_TAG_NAME: 1.0.0
+  MSVC_VERSION: 16
+  
+jobs:
+  windows:
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        include:
+          - configuration: Debug
+          - configuration: Release
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - run: pip install conan==1.59.0
+
+    - name: Configure conan #remove comment
+      run: |
+        conan remote add barco https://barcohc.jfrog.io/barcohc/api/conan/barco
+        conan user -p ${{ secrets.CONAN_API_KEY }} -r barco ${{ secrets.CONAN_API_USER }}
+        conan profile new default --detect
+        conan profile update settings.compiler="Visual Studio" default
+        conan profile update settings.compiler.version=${{ env.MSVC_VERSION }} default
+        
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.4.3'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        install-deps: 'true'
+        modules: 'qt5compat'
+        cache: 'true'
+        set-env: 'true'
+        
+    - name: Prepare tag name
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: olegtarasov/get-tag@v2.1.2
+      with:
+        tagRegex: "v(.*)" # Strip leaving v
+              
+    - name: Build
+      env:
+        QTDIR: Qt6_DIR
+      run:
+        conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      
+    - name: Upload
+      run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      if: env.GIT_TAG_NAME != 'master'
+
+  ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        configuration: [Debug, Release]
+        include:
+          - compiler: gcc
+            configuration: Debug
+          - compiler: gcc
+            configuration: Release
+          - compiler: clang
+            configuration: Debug
+          - compiler: clang
+            configuration: Release
+
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/barco/qaweb-agent-builder-${{ matrix.compiler }}:2.0.2
+      credentials:
+        username: ${{ secrets.REG_USER }}
+        password: ${{ secrets.REG_TOKEN }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Configure conan
+      run: |
+        conan remote add barco https://barcohc.jfrog.io/barcohc/api/conan/barco
+        conan user -p ${{ secrets.CONAN_API_KEY }} -r barco ${{ secrets.CONAN_API_USER }}
+        conan profile new default --detect
+        conan profile update settings.compiler="${{ matrix.compiler }}" default
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+    - run: git config --global --add safe.directory $GITHUB_WORKSPACE
+    
+    - name: Prepare tag name
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: olegtarasov/get-tag@v2.1.2
+      with:
+        tagRegex: "v(.*)" # Strip leaving v
+      
+    - name: Build
+      run: conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+        
+    - name: Upload
+      run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      if: env.GIT_TAG_NAME != 'master'
