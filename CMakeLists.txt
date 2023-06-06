@@ -5,11 +5,12 @@ project(QuaZip VERSION 1.4)
 
 include(cmake/clone-repo.cmake)
 
-cmake_path(GET ENV{Qt6_DIR} PARENT_PATH Qt6Core_DIR)
-cmake_path(GET ENV{Qt6_DIR} PARENT_PATH Qt6Core5Compat_DIR)
+# Custom requirements
+set(Qt6_DIR "$ENV{Qt6_DIR}")
+cmake_path(GET Qt6_DIR PARENT_PATH Qt6Core_DIR)
+cmake_path(GET Qt6_DIR PARENT_PATH Qt6Core5Compat_DIR)
 set(Qt6Core_DIR "${Qt6Core_DIR}\\Qt6Core")
 set(Qt6Core5Compat_DIR "${Qt6Core5Compat_DIR}\\Qt6Core5Compat")
-
 find_package(Qt6Core            REQUIRED)
 find_package(Qt6Core5Compat     REQUIRED)
 
