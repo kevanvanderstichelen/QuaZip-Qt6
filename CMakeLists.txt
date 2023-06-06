@@ -5,6 +5,19 @@ project(QuaZip VERSION 1.4)
 
 include(cmake/clone-repo.cmake)
 
+set(Qt6Core_DIR "$ENV{Qt6_DIR}")
+set(Qt6Core5Compat_DIR "$ENV{Qt6_DIR}")
+cmake_path(GET Qt6Core_DIR PARENT_PATH Qt6Core_DIR)
+cmake_path(GET Qt6Core5Compat_DIR PARENT_PATH Qt6Core5Compat_DIR)
+set(Qt6Core_DIR "${Qt6Core_DIR}\\Qt6Core")
+set(Qt6Core5Compat_DIR "${Qt6Core5Compat_DIR}\\Qt6Core5Compat")
+
+message("CMAKE_CURRENT_LIST_DIR  : ${CMAKE_CURRENT_LIST_DIR}")
+message("CMAKE_CURRENT_SOURCE_DIR : ${CMAKE_CURRENT_SOURCE_DIR}")
+
+find_package(Qt6Core            REQUIRED)
+find_package(Qt6Core5Compat     REQUIRED)
+
 set(QUAZIP_LIB_VERSION ${QuaZip_VERSION})
 set(QUAZIP_LIB_SOVERSION 1.4.0)
 

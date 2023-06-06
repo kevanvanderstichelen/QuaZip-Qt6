@@ -1,3 +1,4 @@
+from os import getcwd
 from conans import ConanFile, CMake, tools
 
 
@@ -8,15 +9,15 @@ class QuazipQt6Conan(ConanFile):
     topics = ("conan", "quazip", "qt6")
     url = "https://github.com/kevanvanderstichelen/QuaZip-Qt6"
     homepage = "https://github.com/stachenov/quazip"
-    exports_sources = ["CMakeLists.txt"]
-    generators = "cmake"
+    exports_sources = "*", "!build/*", "!ninja.zip"
+    generators = ("cmake","cmake_find_package")
 
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
     default_options = {"shared": False}
 
     requires = ("bzip2/1.0.8@",
-                "zlib/1.2.13")
+                "zlib/1.2.13@")
 
     def config_options(self):
         if self.settings.os == "Windows":
