@@ -12,7 +12,6 @@ class QuazipQt6Conan(ConanFile):
     homepage = "https://github.com/stachenov/quazip"
     exports_sources = "*", "!build/*", "!ninja.zip"
     generators = ("cmake","cmake_find_package")
-
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
     default_options = {"shared": True}
@@ -28,7 +27,6 @@ class QuazipQt6Conan(ConanFile):
         cmake = CMake(self)
         cmake.definitions["BUILD_SHARED_LIBS"] = self.options.shared
         cmake.definitions["QUAZIP_QT_MAJOR_VERSION"] = 6
-
         cmake.configure(source_folder=".")
         cmake.build()
         cmake.install()
