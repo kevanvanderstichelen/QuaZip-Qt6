@@ -4,7 +4,7 @@ on:
   push
 
 env:
-  PACKAGE_NAME: QuaZip-Qt6
+  PACKAGE_NAME: quazip
   GIT_TAG_NAME: 1.0.0
   MSVC_VERSION: 16
   
