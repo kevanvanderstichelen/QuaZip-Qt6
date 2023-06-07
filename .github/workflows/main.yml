@@ -52,7 +52,7 @@ jobs:
               
     - name: Build
       run:
-        conan create --ignore-dirty -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+        conan create --ignore-dirty --build=missing -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare 
       
     - name: Upload
       run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
