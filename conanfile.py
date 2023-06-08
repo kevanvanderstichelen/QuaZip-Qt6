@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class QuazipQt6Conan(ConanFile):
     name = "quazip"
-    version = "1.3.0"
+    version = "1.3"
     license = "LGPL-2.1, zlib/png"
     description = "Qt/C++ wrapper over minizip"
     topics = ("conan", "quazip", "qt6")
