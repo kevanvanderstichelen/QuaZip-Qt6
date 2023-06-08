@@ -49,7 +49,7 @@ public:
     */
   QuaZIODevice(QIODevice *io, QObject *parent = nullptr);
   /// Destructor.
-  ~QuaZIODevice() override;
+  ~QuaZIODevice();
   /// Flushes data waiting to be written.
   /**
     Unfortunately, as QIODevice doesn't support flush() by itself, the
@@ -77,26 +77,26 @@ public:
     \param mode Neither QIODevice::ReadWrite nor QIODevice::Append are
     not supported.
     */
-  bool open(QIODevice::OpenMode mode) override;
+  virtual bool open(QIODevice::OpenMode mode);
   /// Closes this device, but not the underlying one.
   /**
     The underlying QIODevice is not closed in case you want to write
     something else to it.
     */
-  void close() override;
+  virtual void close();
   /// Returns the underlying device.
   QIODevice *getIoDevice() const;
   /// Returns true.
-  bool isSequential() const override;
+  virtual bool isSequential() const;
   /// Returns true iff the end of the compressed stream is reached.
-  bool atEnd() const override;
+  virtual bool atEnd() const;
   /// Returns the number of the bytes buffered.
-  qint64 bytesAvailable() const override;
+  virtual qint64 bytesAvailable() const;
 protected:
   /// Implementation of QIODevice::readData().
-  qint64 readData(char *data, qint64 maxSize) override;
+  virtual qint64 readData(char *data, qint64 maxSize);
   /// Implementation of QIODevice::writeData().
-  qint64 writeData(const char *data, qint64 maxSize) override;
+  virtual qint64 writeData(const char *data, qint64 maxSize);
 private:
   QuaZIODevicePrivate *d;
 };

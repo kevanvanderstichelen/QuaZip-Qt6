@@ -1,8 +1,3 @@
-## QuaZip-Qt6
-QuaZip-Qt6.4.3 is an altered version of the original QuaZip 1.4 repository (https://github.com/stachenov/quazip/) that makes MSVC 2019, Clang 11, GCC 11 compilation possible.
-
-- - -
-## QuaZip 
 QuaZip is the C++ wrapper for Gilles Vollant's ZIP/UNZIP package
 (AKA Minizip) using Trolltech's Qt library.
 

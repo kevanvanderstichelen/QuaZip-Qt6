@@ -73,7 +73,9 @@ bool JlCompress::compressFile(QuaZip* zip, QString fileName, QString fileDest) {
 
     // Chiudo i file
     outFile.close();
-    return outFile.getZipError() == UNZ_OK;
+    if (outFile.getZipError()!=UNZ_OK) return false;
+
+    return true;
 }
 
 bool JlCompress::compressSubDir(QuaZip* zip, QString dir, QString origDir, bool recursive, QDir::Filters filters) {
@@ -107,7 +109,8 @@ bool JlCompress::compressSubDir(QuaZip* zip, QString dir, QString origDir, bool 
     if (recursive) {
         // Per ogni sotto cartella
         QFileInfoList files = directory.entryInfoList(QDir::AllDirs|QDir::NoDotAndDotDot|filters);
-        for (const auto& file : files) {
+        for (int index = 0; index < files.size(); ++index ) {
+            const QFileInfo & file( files.at( index ) );
             if (!file.isDir()) // needed for Qt < 4.7 because it doesn't understand AllDirs
                 continue;
             // Comprimo la sotto cartella
@@ -117,7 +120,8 @@ bool JlCompress::compressSubDir(QuaZip* zip, QString dir, QString origDir, bool 
 
     // Per ogni file nella cartella
     QFileInfoList files = directory.entryInfoList(QDir::Files|filters);
-    for (const auto& file : files) {
+    for (int index = 0; index < files.size(); ++index ) {
+        const QFileInfo & file( files.at( index ) );
         // Se non e un file o e il file compresso che sto creando
         if(!file.isFile()||file.absoluteFilePath()==zip->getZipName()) continue;
 
@@ -172,7 +176,9 @@ bool JlCompress::extractFile(QuaZip* zip, QString fileName, QString fileDest) {
 
     if (info.isSymbolicLink()) {
         QString target = QFile::decodeName(inFile.readAll());
-        return QFile::link(target, fileDest);
+        if (!QFile::link(target, fileDest))
+            return false;
+        return true;
     }
 
     // Apro il file risultato
@@ -378,8 +384,8 @@ QStringList JlCompress::extractDir(QuaZip &zip, const QString &dir)
     QString cleanDir = QDir::cleanPath(dir);
     QDir directory(cleanDir);
     QString absCleanDir = directory.absolutePath();
-    if (!absCleanDir.endsWith(QLatin1Char('/'))) // It only ends with / if it's the FS root.
-        absCleanDir += QLatin1Char('/');
+    if (!absCleanDir.endsWith('/')) // It only ends with / if it's the FS root.
+        absCleanDir += '/';
     QStringList extracted;
     if (!zip.goToFirstFile()) {
         return QStringList();

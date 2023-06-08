@@ -57,7 +57,7 @@ public:
     */
   QuaGzipFile(const QString &fileName, QObject *parent = nullptr);
   /// Destructor.
-  ~QuaGzipFile() override;
+  virtual ~QuaGzipFile();
   /// Sets the name of the GZIP file to be opened.
   void setFileName(const QString& fileName);
   /// Returns the name of the GZIP file.
@@ -70,13 +70,13 @@ public:
     writing, it is downright impossible. Therefore, QuaGzipFile does not
     support seeking at all.
     */
-  bool isSequential() const override;
+  virtual bool isSequential() const;
   /// Opens the file.
   /**
     \param mode Can be either QIODevice::Write or QIODevice::Read.
     ReadWrite and Append aren't supported.
     */
-  bool open(QIODevice::OpenMode mode) override;
+  virtual bool open(QIODevice::OpenMode mode);
   /// Opens the file.
   /**
     \overload
@@ -92,12 +92,12 @@ public:
     */
   virtual bool flush();
   /// Closes the file.
-  void close() override;
+  virtual void close();
 protected:
   /// Implementation of QIODevice::readData().
-  qint64 readData(char *data, qint64 maxSize) override;
+  virtual qint64 readData(char *data, qint64 maxSize);
   /// Implementation of QIODevice::writeData().
-  qint64 writeData(const char *data, qint64 maxSize) override;
+  virtual qint64 writeData(const char *data, qint64 maxSize);
 private:
     // not implemented by design to disable copy
     QuaGzipFile(const QuaGzipFile &that);

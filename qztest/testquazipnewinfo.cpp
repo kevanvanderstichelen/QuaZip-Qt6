@@ -12,6 +12,11 @@
 #include <quazipfileinfo.h>
 #include <quazip_qt_compat.h>
 
+TestQuaZipNewInfo::TestQuaZipNewInfo(QObject *parent) :
+    QObject(parent)
+{
+}
+
 void TestQuaZipNewInfo::setFileNTFSTimes()
 {
     QString zipName = "newtimes.zip";

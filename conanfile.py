@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class QuazipQt6Conan(ConanFile):
     name = "quazip"
-    version = "1.4.0"
+    version = "1.3.0"
     license = "LGPL-2.1, zlib/png"
     description = "Qt/C++ wrapper over minizip"
     topics = ("conan", "quazip", "qt6")
@@ -13,7 +13,7 @@ class QuazipQt6Conan(ConanFile):
     generators = ("cmake","cmake_find_package")
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
-    default_options = {"shared": True}
+    default_options = {"shared": False}
     build_policy = "missing"
 
     requires = ("zlib/1.2.13@")
@@ -23,7 +23,6 @@ class QuazipQt6Conan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.definitions["BUILD_SHARED_LIBS"] = self.options.shared
         cmake.definitions["QUAZIP_QT_MAJOR_VERSION"] = 6
         cmake.configure(source_folder=".")
         cmake.build()

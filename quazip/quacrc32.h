@@ -37,11 +37,11 @@ class QUAZIP_EXPORT QuaCrc32 : public QuaChecksum32 {
 public:
 	QuaCrc32();
 
-	quint32 calculate(const QByteArray &data) override;
+	quint32 calculate(const QByteArray &data);
 
-	void reset() override;
-	void update(const QByteArray &buf) override;
-	quint32 value() override;
+	void reset();
+	void update(const QByteArray &buf);
+	quint32 value();
 
 private:
 	quint32 checksum;

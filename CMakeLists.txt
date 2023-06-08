@@ -1,42 +1,26 @@
 # require 3.15 for GNUInstallDirs
 cmake_minimum_required(VERSION 3.15...3.18)
 
-project(QuaZip VERSION 1.4)
+project(QuaZip VERSION 1.3)
 
-include(cmake/clone-repo.cmake)
-
-# Custom requirements
-set(Qt6_DIR "$ENV{Qt6_DIR}")
-cmake_path(GET Qt6_DIR PARENT_PATH Qt6Core_DIR)
-cmake_path(GET Qt6_DIR PARENT_PATH Qt6Core5Compat_DIR)
-set(Qt6Core_DIR "${Qt6Core_DIR}\\Qt6Core")
-set(Qt6Core5Compat_DIR "${Qt6Core5Compat_DIR}\\Qt6Core5Compat")
-find_package(Qt6Core            REQUIRED)
-find_package(Qt6Core5Compat     REQUIRED)
+set(CMAKE_CXX_STANDARD 14)
 
 set(QUAZIP_LIB_VERSION ${QuaZip_VERSION})
-set(QUAZIP_LIB_SOVERSION 1.4.0)
+set(QUAZIP_LIB_SOVERSION 1.3.0)
 
-if(EMSCRIPTEN)
-  #option(ZLIB_INCLUDE "Path to include dir" "")
-  #option(ZLIB_LIBRARY "Path to library dir" "")
-  option(BUILD_SHARED_LIBS "" OFF)
-  option(QUAZIP_INSTALL "" OFF)
-  option(QUAZIP_USE_QT_ZLIB "" OFF)
-  option(QUAZIP_ENABLE_TESTS "Build QuaZip tests" OFF)
-else()
-  option(BUILD_SHARED_LIBS "" ON)
-  option(QUAZIP_INSTALL "" ON)
-  option(QUAZIP_USE_QT_ZLIB "" OFF)
-  option(QUAZIP_ENABLE_TESTS "Build QuaZip tests" OFF)
-endif()
+# Custom requirements
+#set(Qt6_DIR "$ENV{Qt6_DIR}")
+#cmake_path(GET Qt6_DIR PARENT_PATH Qt6Core_DIR)
+#cmake_path(GET Qt6_DIR PARENT_PATH Qt6Core5Compat_DIR)
+#set(Qt6Core_DIR "${Qt6Core_DIR}\\Qt6Core")
+#set(Qt6Core5Compat_DIR "${Qt6Core5Compat_DIR}\\Qt6Core5Compat")
+#find_package(Qt6Core            REQUIRED)
+#find_package(Qt6Core5Compat     REQUIRED)
 
-# Make BZIP2 optional
-option(QUAZIP_BZIP2 "Enables BZIP2 compression" ON)
-option(QUAZIP_BZIP2_STDIO "Output BZIP2 errors to stdio" ON)
-
-option(QUAZIP_FETCH_LIBS "Enables fetching third-party libraries if not found" ${WIN32})
-option(QUAZIP_FORCE_FETCH_LIBS "Enables fetching third-party libraries always" OFF)
+option(BUILD_SHARED_LIBS "" OFF)
+option(QUAZIP_INSTALL "" ON)
+option(QUAZIP_USE_QT_ZLIB "" ON)
+option(QUAZIP_ENABLE_TESTS "Build QuaZip tests" OFF)
 
 # Set the default value of `${QUAZIP_QT_MAJOR_VERSION}`.
 # We search quietly for Qt6, Qt5 and Qt4 in that order.
@@ -58,12 +42,6 @@ if (NOT QT_FOUND)
 endif()
 
 set(QUAZIP_QT_MAJOR_VERSION ${QT_VERSION_MAJOR} CACHE STRING "Qt version to use (4, 5 or 6), defaults to ${QT_VERSION_MAJOR}")
-
-if (QUAZIP_QT_MAJOR_VERSION EQUAL 6)
-    set(CMAKE_CXX_STANDARD 17)
-else()
-    set(CMAKE_CXX_STANDARD 14)
-endif()
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE RELEASE)
@@ -113,89 +91,10 @@ if(QUAZIP_USE_QT_ZLIB)
     endif()
 endif()
 if(NOT QUAZIP_QT_ZLIB_USED)
-
-    if(EMSCRIPTEN)
-      if(NOT DEFINED ZLIB_LIBRARY)
-        message(WARNING "ZLIB_LIBRARY is not set")
-      endif()
-
-      if(NOT DEFINED ZLIB_INCLUDE)
-        message(WARNING "ZLIB_INCLUDE is not set")
-      else()
-        include_directories(${ZLIB_INCLUDE})
-      endif()
-
-      if(NOT DEFINED ZCONF_INCLUDE)
-        message(WARNING "ZCONF_INCLUDE is not set")
-      else()
-        include_directories(${ZCONF_INCLUDE})
-      endif()
-
-      set(QUAZIP_LIB_LIBRARIES ${QUAZIP_LIB_LIBRARIES} ${ZLIB_LIBRARY})
-    else()
-      find_package(ZLIB REQUIRED)
-      set(QUAZIP_LIB_LIBRARIES ${QUAZIP_LIB_LIBRARIES} ZLIB::ZLIB)
-    endif()  
-endif()
-
-set(QUAZIP_DEP)
-set(QUAZIP_INC)
-set(QUAZIP_LIB)
-set(QUAZIP_LBD)
-
-if(QUAZIP_BZIP2)
-    # Check if bzip2 is present
-    set(QUAZIP_BZIP2 ON)
-
-    if(NOT QUAZIP_FORCE_FETCH_LIBS)
-        find_package(BZip2 QUIET)
-    endif()
-
-    if(BZIP2_FOUND AND NOT QUAZIP_FORCE_FETCH_LIBS)
-        message(STATUS "Using BZIP2 ${BZIP2_VERSION_STRING}")
-
-        list(APPEND QUAZIP_INC ${BZIP2_INCLUDE_DIRS})
-        list(APPEND QUAZIP_LIB ${BZIP2_LIBRARIES})
-        list(APPEND QUAZIP_LBD ${BZIP2_LIBRARY_DIRS})
-
-        set(PC_PRIVATE_LIBS "${PC_PRIVATE_LIBS} -lbzip2")
-    elseif(QUAZIP_FETCH_LIBS)
-        clone_repo(bzip2 https://sourceware.org/git/bzip2.git)
-
-        # BZip2 repository does not support cmake so we have to create
-        # the bzip2 library ourselves
-        set(BZIP2_SRC
-            ${BZIP2_SOURCE_DIR}/blocksort.c
-            ${BZIP2_SOURCE_DIR}/bzlib.c
-            ${BZIP2_SOURCE_DIR}/compress.c
-            ${BZIP2_SOURCE_DIR}/crctable.c
-            ${BZIP2_SOURCE_DIR}/decompress.c
-            ${BZIP2_SOURCE_DIR}/huffman.c
-            ${BZIP2_SOURCE_DIR}/randtable.c)
-
-        set(BZIP2_HDR
-            ${BZIP2_SOURCE_DIR}/bzlib.h
-            ${BZIP2_SOURCE_DIR}/bzlib_private.h)
-
-        add_library(bzip2 STATIC ${BZIP2_SRC} ${BZIP2_HDR})
-
-        if(NOT QUAZIP_BZIP2_STDIO)
-            target_compile_definitions(bzip2 PRIVATE -DBZ_NO_STDIO)
-        endif()
-
-        list(APPEND QUAZIP_DEP bzip2)
-        list(APPEND QUAZIP_LIB bzip2)
-        list(APPEND QUAZIP_INC ${BZIP2_SOURCE_DIR})
-    else()
-        message(STATUS "BZip2 library not found")
-
-        set(QUAZIP_BZIP2 OFF)
-    endif()
-
-    if(QUAZIP_BZIP2)
-        find_package(BZip2)
-        add_compile_definitions(HAVE_BZIP2)
-    endif()
+    message("ZCONF_INCLUDE ${ZCONF_INCLUDE}")
+    include_directories(${ZCONF_INCLUDE})
+    find_package(ZLIB REQUIRED)
+    set(QUAZIP_LIB_LIBRARIES ${QUAZIP_LIB_LIBRARIES} ZLIB::ZLIB)
 endif()
 
 add_subdirectory(quazip)

@@ -20,6 +20,11 @@ Q_DECLARE_METATYPE(QList<qint32>);
 Q_DECLARE_METATYPE(QuaExtraFieldHash);
 #endif
 
+TestQuaZipFileInfo::TestQuaZipFileInfo(QObject *parent) :
+    QObject(parent)
+{
+}
+
 void TestQuaZipFileInfo::getNTFSTime()
 {
     QFETCH(QString, zipName);
@@ -135,37 +140,37 @@ void TestQuaZipFileInfo::getExtTime_data()
     QTest::addColumn<QDateTime>("expectedAcTime");
     QTest::addColumn<QDateTime>("expectedCrTime");
     QTest::newRow("no times") << QString::fromUtf8("noTimes")
-                              << static_cast<quint8>(0)
-                              << static_cast<quint16>(1)
+                              << quint8(0)
+                              << quint16(1)
                               << QList<qint32>()
-                              << static_cast<quint16>(1)
+                              << quint16(1)
                               << QList<qint32>()
                               << QDateTime()
                               << QDateTime()
                               << QDateTime();
     QTest::newRow("all times") << QString::fromUtf8("allTimes")
-                              << static_cast<quint8>(7)
-                              << static_cast<quint16>(13)
+                              << quint8(7)
+                              << quint16(13)
                               << (QList<qint32>() << 1 << 2 << 3)
-                              << static_cast<quint16>(5)
+                              << quint16(5)
                               << (QList<qint32>() << 1)
                               << QDateTime(QDate(1970, 1, 1), QTime(0, 0, 1), Qt::UTC)
                               << QDateTime(QDate(1970, 1, 1), QTime(0, 0, 2), Qt::UTC)
                               << QDateTime(QDate(1970, 1, 1), QTime(0, 0, 3), Qt::UTC);
     QTest::newRow("no ac time") << QString::fromUtf8("noAcTime")
-                              << static_cast<quint8>(5)
-                              << static_cast<quint16>(9)
+                              << quint8(5)
+                              << quint16(9)
                               << (QList<qint32>() << 1 << 3)
-                              << static_cast<quint16>(5)
+                              << quint16(5)
                               << (QList<qint32>() << 1)
                               << QDateTime(QDate(1970, 1, 1), QTime(0, 0, 1), Qt::UTC)
                               << QDateTime()
                               << QDateTime(QDate(1970, 1, 1), QTime(0, 0, 3), Qt::UTC);
     QTest::newRow("negativeTime") << QString::fromUtf8("negativeTime")
-                              << static_cast<quint8>(1)
-                              << static_cast<quint16>(5)
+                              << quint8(1)
+                              << quint16(5)
                               << (QList<qint32>() << -1)
-                              << static_cast<quint16>(5)
+                              << quint16(5)
                               << (QList<qint32>() << -1)
                               << QDateTime(QDate(1969, 12, 31), QTime(23, 59, 59), Qt::UTC)
                               << QDateTime()
