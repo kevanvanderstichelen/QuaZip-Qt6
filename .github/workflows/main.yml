@@ -28,7 +28,7 @@ jobs:
     - name: Configure conan #remove comment
       run: |
         conan remote add di-conan-dev-local https://bin.cloud.barco.com/artifactory/api/conan/di-conan-dev-local
-        conan user -p ${{ secrets.CONAN_API_KEY }} -r barco ${{ secrets.CONAN_API_USER }}
+        conan user -p ${{ secrets.CONAN_API_KEY }} -r di-conan-dev-local ${{ secrets.CONAN_API_USER }}
         conan profile new default --detect
         conan profile update settings.compiler="Visual Studio" default
         conan profile update settings.compiler.version=${{ env.MSVC_VERSION }} default
