@@ -16,8 +16,6 @@ class QuazipQt6Conan(ConanFile):
     default_options = {"shared": False}
     build_policy = "missing"
 
-    requires = ("zlib/1.3.1@")
-
     def config_options(self):
         pass
 
