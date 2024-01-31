@@ -55,7 +55,7 @@ jobs:
         conan create --ignore-dirty --build=missing -s build_type=${{ matrix.configuration }} . ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare 
       
     - name: Upload
-      run: conan upload --remote barco --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
+      run: conan upload --remote di-conan-dev-local --all ${{ env.PACKAGE_NAME }}/${{ env.GIT_TAG_NAME }}@barco/healthcare
       if: env.GIT_TAG_NAME != 'master'
 
   ubuntu:
