@@ -78,8 +78,8 @@ jobs:
     container:
       image: ghcr.io/barcoemu/disw-qaweb-agent-builder-${{ matrix.compiler }}:2.0.9
       credentials:
-        username: ${{ secrets.REG_USER }}
-        password: ${{ secrets.REG_TOKEN }}
+        username: ${{ secrets.CGH_USER }}
+        password: ${{ secrets.CGH_KEY }}
 
     steps:
     - name: Checkout repository
